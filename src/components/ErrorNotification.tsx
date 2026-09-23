@@ -2,7 +2,7 @@ import React from 'react';
 import cn from 'classnames';
 
 type Props = {
-  errorMessage: string | null;
+  errorMessage: string;
   onClose: () => void;
 };
 
@@ -17,7 +17,7 @@ export const ErrorNotification: React.FC<Props> = ({
       'is-danger',
       'is-light',
       'has-text-weight-normal',
-      { hidden: errorMessage === null },
+      { hidden: errorMessage === '' },
     )}
   >
     <button

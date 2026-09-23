@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { UserWarning } from './UserWarning';
 import { getTodos, USER_ID } from './api/todos';
 import { Todo } from './types/Todo';
@@ -20,23 +20,31 @@ function getVisibleTodos(todos: Todo[], selectedFilter: Filter) {
 export const App: React.FC = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [selectedFilter, setSelectedFilter] = useState<Filter>(Filter.All);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string>('');
 
   const visibleTodos = getVisibleTodos(todos, selectedFilter);
 
+  const errorTimerId = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const showError = (message: string) => {
+    setErrorMessage(message);
+
+    if (errorTimerId.current) {
+      clearTimeout(errorTimerId.current);
+    }
+
+    errorTimerId.current = setTimeout(() => {
+      setErrorMessage('');
+    }, 3000);
+  };
+
   useEffect(() => {
-    setErrorMessage(null);
+    setErrorMessage('');
 
     getTodos()
-      .then(todosFromServer => {
-        setTodos(todosFromServer);
-      })
+      .then(setTodos)
       .catch(() => {
-        setErrorMessage('Unable to load todos');
-
-        setTimeout(() => {
-          setErrorMessage(null);
-        }, 3000);
+        showError('Unable to load todos');
       });
   }, []);
 
@@ -84,7 +92,7 @@ export const App: React.FC = () => {
               activeTodosCount={activeTodosCount}
               completedTodosCount={completedTodosCount}
               selectedFilter={selectedFilter}
-              onFilterChange={newFilter => setSelectedFilter(newFilter)}
+              onFilterChange={setSelectedFilter}
             />
           </>
         )}
@@ -92,7 +100,7 @@ export const App: React.FC = () => {
 
       <ErrorNotification
         errorMessage={errorMessage}
-        onClose={() => setErrorMessage(null)}
+        onClose={() => setErrorMessage('')}
       />
     </div>
   );
